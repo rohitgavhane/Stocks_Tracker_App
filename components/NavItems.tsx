@@ -9,6 +9,8 @@ const NavItems = () => {
 
     const isActive = (path: string) => {
         // Strict check for the homepage
+
+// sourcery skip: use-braces
         if (path === '/') return pathname === '/';
         // Check if the current path starts with the link's path for other pages
         return pathname.startsWith(path);
