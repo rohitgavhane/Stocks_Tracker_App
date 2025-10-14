@@ -29,6 +29,8 @@ export const PREFERRED_INDUSTRIES = [
 export const ALERT_TYPE_OPTIONS = [
    { value: 'upper', label: 'Upper' },
    { value: 'lower', label: 'Lower' },
+   { value: 'upper', label: 'Upper' },
+   { value: 'lower', label: 'Lower' },
 ];
 
 export const CONDITION_OPTIONS = [
