@@ -5,18 +5,33 @@ import { CommandDialog, CommandEmpty, CommandGroup, CommandInput, CommandItem, C
 import {Button} from "@/components/ui/button";
 import {Loader2, Star, TrendingUp} from "lucide-react";
 import Link from "next/link";
-import {isSea} from "node:sea";
 import {searchStocks} from "@/lib/actions/finnhub.actions";
 import {useDebounce} from "@/hooks/useDebounce";
+import { addToWatchlist, removeFromWatchlist, isInWatchlist } from "@/lib/Watchlist";
 
 export default function SearchCommand({ renderAs = 'button', label = 'Add stock', initialStocks }: SearchCommandProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [loading, setLoading] = useState(false)
   const [stocks, setStocks] = useState<StockWithWatchlistStatus[]>(initialStocks);
+  const [watchlistItems, setWatchlistItems] = useState<Set<string>>(new Set());
 
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
+
+  useEffect(() => {
+    // Load watchlist items on mount
+    const loadWatchlist = () => {
+      const items = new Set<string>();
+      displayStocks?.forEach(stock => {
+        if (isInWatchlist(stock.symbol)) {
+          items.add(stock.symbol);
+        }
+      });
+      setWatchlistItems(items);
+    };
+    loadWatchlist();
+  }, [displayStocks]);
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -54,6 +69,25 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
     setSearchTerm("");
     setStocks(initialStocks);
   }
+
+  const handleToggleWatchlist = (e: React.MouseEvent, stock: StockWithWatchlistStatus) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const isCurrentlyInWatchlist = watchlistItems.has(stock.symbol);
+    
+    if (isCurrentlyInWatchlist) {
+      removeFromWatchlist(stock.symbol);
+      setWatchlistItems(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(stock.symbol);
+        return newSet;
+      });
+    } else {
+      addToWatchlist(stock);
+      setWatchlistItems(prev => new Set(prev).add(stock.symbol));
+    }
+  };
 
   return (
     <>
@@ -100,7 +134,14 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
                           {stock.symbol} | {stock.exchange } | {stock.type}
                         </div>
                       </div>
-                    {/*<Star />*/}
+                    <Star 
+                      onClick={(e) => handleToggleWatchlist(e, stock)}
+                      className={`cursor-pointer transition-colors ${
+                        watchlistItems.has(stock.symbol) 
+                          ? 'fill-yellow-400 text-yellow-400' 
+                          : 'text-gray-400 hover:text-yellow-400'
+                      }`}
+                    />
                     </Link>
                   </li>
               ))}
@@ -112,3 +153,4 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
     </>
   )
 }
+
