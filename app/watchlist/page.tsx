@@ -12,8 +12,11 @@ import {
   importWatchlist,
   type WatchlistStock,
 } from "@/lib/Watchlist";
+import Image from "next/image";
+import NavItems from "@/components/NavItems";
 
-export default function WatchlistPage() {
+export default function WatchlistPage({ children }: { children : React.ReactNode }) {
+  
   const [watchlist, setWatchlist] = useState<WatchlistStock[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,7 +101,10 @@ export default function WatchlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-gray-200 p-6">
+
+
+
+        <div className="z-10 relative lg:mt-4 lg:mb-16">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="mb-8">
@@ -138,6 +144,7 @@ export default function WatchlistPage() {
                 <Trash2 className="h-4 w-4" />
                 Clear All
               </Button>
+            </div>
             </div>
           </div>
         </div>
@@ -210,6 +217,5 @@ export default function WatchlistPage() {
           </div>
         )}
       </div>
-    </div>
-  );
+     );
 }

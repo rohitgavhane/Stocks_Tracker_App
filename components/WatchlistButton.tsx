@@ -1,19 +1,47 @@
 "use client";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
+import { addToWatchlist, removeFromWatchlist, isInWatchlist } from "@/lib/Watchlist";
 
-// Minimal WatchlistButton implementation to satisfy page requirements.
-// This component focuses on UI contract only. It toggles local state and
-// calls onWatchlistChange if provided. Styling hooks match globals.css.
+interface WatchlistButtonProps {
+  symbol: string;
+  company: string;
+  exchange?: string;
+  type?: "button" | "icon";
+  stockType?: string;
+  isInWatchlist?: boolean;
+  showTrashIcon?: boolean;
+  onWatchlistChange?: (symbol: string, added: boolean) => void;
+}
 
 const WatchlistButton = ({
   symbol,
   company,
-  isInWatchlist,
-  showTrashIcon = false,
+  exchange = "NASDAQ",
   type = "button",
+  stockType = "Common Stock",
+  isInWatchlist: initialIsInWatchlist,
+  showTrashIcon = false,
   onWatchlistChange,
 }: WatchlistButtonProps) => {
-  const [added, setAdded] = useState<boolean>(!!isInWatchlist);
+  const [added, setAdded] = useState<boolean>(!!initialIsInWatchlist);
+
+  // Check if stock is already in watchlist on mount
+  useEffect(() => {
+    setAdded(isInWatchlist(symbol));
+  }, [symbol]);
+
+  // Listen for watchlist updates from other components
+  useEffect(() => {
+    const handleWatchlistUpdate = () => {
+      setAdded(isInWatchlist(symbol));
+    };
+
+    window.addEventListener("watchlistUpdated", handleWatchlistUpdate);
+
+    return () => {
+      window.removeEventListener("watchlistUpdated", handleWatchlistUpdate);
+    };
+  }, [symbol]);
 
   const label = useMemo(() => {
     if (type === "icon") return added ? "" : "";
@@ -22,6 +50,20 @@ const WatchlistButton = ({
 
   const handleClick = () => {
     const next = !added;
+    
+    if (next) {
+      // Add to watchlist
+      addToWatchlist({
+        symbol,
+        name: company,
+        exchange,
+        type: stockType,
+      });
+    } else {
+      // Remove from watchlist
+      removeFromWatchlist(symbol);
+    }
+    
     setAdded(next);
     onWatchlistChange?.(symbol, next);
   };
@@ -72,3 +114,48 @@ const WatchlistButton = ({
 };
 
 export default WatchlistButton;
+
+
+// ============================================
+// USAGE EXAMPLE
+// ============================================
+
+/*
+// In your stock detail page or anywhere you want to use it:
+
+import WatchlistButton from "@/components/WatchlistButton";
+
+// Example 1: Button type (default)
+<WatchlistButton 
+  symbol="AAPL"
+  company="Apple Inc."
+  exchange="NASDAQ"
+  stockType="Common Stock"
+/>
+
+// Example 2: Icon type (star icon only)
+<WatchlistButton 
+  symbol="AAPL"
+  company="Apple Inc."
+  exchange="NASDAQ"
+  type="icon"
+/>
+
+// Example 3: With trash icon when added
+<WatchlistButton 
+  symbol="AAPL"
+  company="Apple Inc."
+  exchange="NASDAQ"
+  showTrashIcon={true}
+/>
+
+// Example 4: With callback
+<WatchlistButton 
+  symbol="AAPL"
+  company="Apple Inc."
+  exchange="NASDAQ"
+  onWatchlistChange={(symbol, added) => {
+    console.log(`${symbol} ${added ? 'added to' : 'removed from'} watchlist`);
+  }}
+/>
+*/
