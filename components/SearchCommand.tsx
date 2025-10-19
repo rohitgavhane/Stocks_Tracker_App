@@ -57,12 +57,23 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
       setLoading(false)
     }
   }
+  const fetchStocks = async (value: string) => {
+    const results = await searchStocks(value);
+    setStocks(results.slice(0, 10)); // show 10
+  };
 
   const debouncedSearch = useDebounce(handleSearch, 300);
 
   useEffect(() => {
     debouncedSearch();
+    fetchStocks(searchTerm)
   }, [searchTerm]);
+
+  useEffect(() => {
+    if (open && !searchTerm.trim()) {
+      setStocks(initialStocks);
+    }
+  }, [open]);
 
   const handleSelectStock = () => {
     setOpen(false);

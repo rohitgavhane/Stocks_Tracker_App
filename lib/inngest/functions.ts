@@ -59,8 +59,8 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
         // Step #2: For each user, get watchlist symbols -> fetch news (fallback to general)
         const results = await step.run('fetch-user-news', async () => {
-            const perUser: Array<{ user: UserForNewsEmail; articles: MarketNewsArticle[] }> = [];
-            for (const user of users as UserForNewsEmail[]) {
+            const perUser: Array<{ user: User; articles: MarketNewsArticle[] }> = [];
+            for (const user of users as User[]) {
                 try {
                     const symbols = await getWatchlistSymbolsByEmail(user.email);
                     let articles = await getNews(symbols);
@@ -106,15 +106,19 @@ export const sendDailyNewsSummary = inngest.createFunction(
 
         // Step #4: (placeholder) Send the emails
         await step.run('send-news-emails', async () => {
-                await Promise.all(
-                    userNewsSummaries.map(async ({ user, newsContent}) => {
-                        if(!newsContent) return false;
-
-                        return await sendNewsSummaryEmail({ email: user.email, date: formatDateToday, newsContent })
-                    })
-                )
-            })
-
+            await Promise.all(
+                userNewsSummaries.map(async ({ user, newsContent }) => {
+                    if (!newsContent) return false;
+        
+                    return await sendNewsSummaryEmail({
+                        email: user.email,
+                        date: formatDateToday, // ✅ fixed
+                        newsContent
+                    });
+                })
+            );
+        });
+        
         return { success: true, message: 'Daily news summary emails sent successfully' }
     }
 )
