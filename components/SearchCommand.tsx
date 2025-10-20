@@ -19,19 +19,20 @@ export default function SearchCommand({ renderAs = 'button', label = 'Add stock'
   const isSearchMode = !!searchTerm.trim();
   const displayStocks = isSearchMode ? stocks : stocks?.slice(0, 10);
 
-  useEffect(() => {
-    // Load watchlist items on mount
-    const loadWatchlist = () => {
-      const items = new Set<string>();
-      displayStocks?.forEach(stock => {
-        if (isInWatchlist(stock.symbol)) {
-          items.add(stock.symbol);
-        }
-      });
-      setWatchlistItems(items);
-    };
-    loadWatchlist();
-  }, [displayStocks]);
+// AFTER (Corrected)
+useEffect(() => {
+  const loadWatchlist = () => {
+    const items = new Set<string>();
+    // You can still use displayStocks inside, but the dependency should be the source
+    displayStocks?.forEach(stock => {
+      if (isInWatchlist(stock.symbol)) {
+        items.add(stock.symbol);
+      }
+    });
+    setWatchlistItems(items);
+  };
+  loadWatchlist();
+}, [stocks]); // ✅ FIX: Changed dependency to break the loop
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
