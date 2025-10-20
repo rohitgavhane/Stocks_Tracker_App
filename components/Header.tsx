@@ -6,6 +6,8 @@ import NavItems from "@/components/NavItems";
 import UserDropdown from "@/components/UserDropdown";
 
 const Header = ({ user, initialStocks }: { user: User; initialStocks: any } ) => {
+
+
   return (
     <header className="sticky top-0 header">
       <div className="container header-wrapper">

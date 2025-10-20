@@ -14,6 +14,7 @@ declare global {
         riskTolerance: string;
         preferredIndustry: string;
     };
+    
 
     type CountrySelectProps = {
         name: string;
